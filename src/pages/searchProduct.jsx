@@ -5,18 +5,38 @@ import React, { useEffect, useState } from 'react'
 const SearchProduct = () => {
     const [products, setProducts] = useState([])
     const [allBooks, setAllBooks] = useState([])
+    const [token, setToken] = useState([])
     const [loader, setloader] = useState(false)
+    const fetchData = async () => {
+        var myHeaders = new Headers();
+        myHeaders.append("Authorization", `Bearer ${token}`);
+        myHeaders.append("Cookie", "lidc=\"b=VB49:s=V:r=V:a=V:p=V:g=8604:u=11:x=1:i=1687514916:t=1687600882:v=2:sig=AQGHR8VU4m_vo7W594ldfcHUS76FeXDl\"; bcookie=\"v=2&0c3c4b3d-7f29-4b62-8f97-5ce975f3e477\"");
 
+        var requestOptions = {
+            method: 'GET',
+            headers: myHeaders,
+            redirect: 'follow'
+        };
+
+        fetch("https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))", requestOptions)
+            .then(response => response.text())
+            .then(result => console.log(result))
+            .catch(error => console.log('error', error));
+    };
+    React.useEffect(() => {
+
+        // fetchData();
+    }, []);
     useEffect(() => {
         setloader(true)
-         axios.get(`https://api.crossref.org/works`).then(({data})=>{
+        axios.get(`https://api.crossref.org/works`).then(({ data }) => {
             setProducts(data?.message?.items)
             setloader(false)
             setAllBooks(data?.message?.items)
 
-         })
+        })
     }, [])
-    
+
 
     const onChangeProduct = async (event) => {
         setloader(true)
@@ -35,12 +55,12 @@ const SearchProduct = () => {
 
             } else {
                 let res = await axios.get(`https://api.crossref.org/works?query.container-title=${event?.target?.value}`)
-                setProducts(res?.data?.message?.items?.length ? res?.data?.message?.items || []:allBooks)
+                setProducts(res?.data?.message?.items?.length ? res?.data?.message?.items || [] : allBooks)
                 setloader(false)
 
             }
         }
-        
+
 
     }
     return (
@@ -49,6 +69,8 @@ const SearchProduct = () => {
                 <div className='col-lg-12 col-md-12 mt-5'>
                     <h4>Books</h4>
                 </div>
+                <input onChange={(e) => setToken(e?.target?.value)} />
+                <button onClick={fetchData}>get</button>
                 <div className="col-md-8 mx-auto mt-3">
                     <div className="input-group">
                         <input className="form-control border-end-0 border rounded-pill" onChange={_.debounce((data) => onChangeProduct(data), 1500)} type="search" placeholder="search by book title,author" id="example-search-input" />
